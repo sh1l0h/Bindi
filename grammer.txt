@@ -1,0 +1,44 @@
+prog	-> (VaDec | FunDec)* EOF
+
+VaDec	-> 'let' WORD ':' type ';' |
+		   'let' WORD ':' '->' type ';' |
+		   'let' WORD ':' type '[' NUM ']' ';' |
+
+FunDec 	-> WORD ':' TE '->' TE '{' St* '}' |
+		   WORD ':' '(' TE ('.' TE)* ')' '->' TE '{' St* '}'
+
+TE 		-> type '[' ']' | '->' type | type 
+type	-> 'int' | 'byte' | 'uint' | 'float' | WORD | 'void'
+
+St		-> WORD '=' E ';' | id '=' BE ';' |
+		   'if' BE St |
+		   'if'	BE St 'else' St | 
+		   'while' BE St |
+		   'for' WORD 'from' E 'to' E St |
+		   'return' BE ';' | 'return' E ';' |
+		   'print' E ';' |
+		   'print' BE ';' |
+		   'let' WORD ':' TE ';' |
+		   'let' WORD ':' TE '=' E ';'|
+		   'let' WORD ':' TE '=' BE ';' 
+
+BLOCK	-> 'begin' (St)* 'end'
+
+BE		-> BT | BT 'or' BE
+BT 		-> BU | BU 'and' BT
+BU		-> BP | !BU
+BP		-> E '>' E | E '<' E | E '>=' E | E '<=' E | E '==' E | E '!=' E |
+		   'true'| 'false' | '(' BE ')'
+
+E		-> T | T '+' E | T '-' E
+T		-> U | U '*' T | U '/' T 
+U		-> P | '-' U | '->' U | '<-' U 
+P		-> NUM | id | STR | 'none' | '(' E ')' 
+
+id		-> WORD | WORD '.' id | WORD '[' E ']' | WORD '[' E ']' '.' id
+
+STR		-> #'"."'
+NUM		-> Di (','Di+)?
+WORD	-> Le {Le|Di|'_'}
+Le		-> #'[A-Za-z]'
+Dig		-> #'[0-9]'

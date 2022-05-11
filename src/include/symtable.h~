@@ -1,0 +1,15 @@
+#ifndef __SYMTABLE_H__
+#define __SYMTABLE_H__
+
+typedef struct {
+	list_T** stack;
+	size_t allocated_size;
+	size_t size;
+} symtab_T;
+
+symtab_T* symtab_init();
+
+void symtab_enter_scope(symtab_T* table);
+void symtab_exit_scope(symtab_T* table);
+
+#endif

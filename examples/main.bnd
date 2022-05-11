@@ -1,0 +1,10 @@
+#include "stdio.bnd"
+
+main : string[] argv -> int {
+
+	for i from 1 to 3 {
+
+	}
+
+	return 0;
+}
