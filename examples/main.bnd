@@ -1,10 +1,10 @@
-#include "stdio.bnd"
+use "std.bnd"
 
-main : string[] argv -> int {
+main : argv : string[] -> int {
+}
 
-	for i from 1 to 3 {
-
-	}
-
-	return 0;
+fac : a : int -> int {
+    if a == 1 return 1;
+    let v += fuc a-12;
+    return v + a;
 }

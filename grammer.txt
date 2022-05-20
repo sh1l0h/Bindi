@@ -4,38 +4,34 @@ VaDec	-> 'let' WORD ':' type ';' |
 		   'let' WORD ':' '->' type ';' |
 		   'let' WORD ':' type '[' NUM ']' ';' |
 
-FunDec 	-> WORD ':' TE '->' TE '{' St* '}' |
-		   WORD ':' '(' TE ('.' TE)* ')' '->' TE '{' St* '}'
+FunDec 	-> WORD ':' WORD ':' TE '->' TE '{' St* '}' |
+		   WORD ':' 'void' '->' TE '{' St* '}' |
+		   WORD ':' '(' WORD ':' TE (',' WORD ':' TE)* ')' '->' TE '{' St* '}'
 
-TE 		-> type '[' ']' | '->' type | type 
-type	-> 'int' | 'byte' | 'uint' | 'float' | WORD | 'void'
+TE 		-> type '[' ']' | '->' type | type | 'void'
+type	-> 'int' | 'long' | 'byte' | 'bool' | 'char' | 'float' | WORD 
 
-St		-> WORD '=' E ';' | id '=' BE ';' |
-		   'if' BE St |
-		   'if'	BE St 'else' St | 
+St		->  id '=' BE ';' |
+		   'if' BE St | 'if' BE St 'else' St | 
 		   'while' BE St |
-		   'for' WORD 'from' E 'to' E St |
-		   'return' BE ';' | 'return' E ';' |
-		   'print' E ';' |
+		   'return' BE ';' |
 		   'print' BE ';' |
 		   'let' WORD ':' TE ';' |
-		   'let' WORD ':' TE '=' E ';'|
-		   'let' WORD ':' TE '=' BE ';' 
+		   'let' WORD ':' TE '=' BE ';' |
+		   BLOCK
 
 BLOCK	-> 'begin' (St)* 'end'
 
 BE		-> BT | BT 'or' BE
 BT 		-> BU | BU 'and' BT
 BU		-> BP | !BU
-BP		-> E '>' E | E '<' E | E '>=' E | E '<=' E | E '==' E | E '!=' E |
-		   'true'| 'false' | '(' BE ')'
-
+BP		-> E | E '>' E | E '<' E | E '>=' E | E '<=' E | E '==' E | E '!=' E 
 E		-> T | T '+' E | T '-' E
 T		-> U | U '*' T | U '/' T 
 U		-> P | '-' U | '->' U | '<-' U 
-P		-> NUM | id | STR | 'none' | '(' E ')' 
+P		-> NUM | id | STR | 'none' | '(' BE ')' | 'true' | 'false'  
 
-id		-> WORD | WORD '.' id | WORD '[' E ']' | WORD '[' E ']' '.' id
+id		-> WORD | WORD '.' id | WORD '[' BE ']' | WORD '[' BE ']' '.' id
 
 STR		-> #'"."'
 NUM		-> Di (','Di+)?

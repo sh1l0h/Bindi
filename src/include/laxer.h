@@ -21,7 +21,7 @@ laxer_T* init_laxer(const char* file, char* src);
 
 char laxer_get_curr_char(laxer_T* laxer);
 
-void laxer_add_token(laxer_T* laxer, int type, arg_T* arg, const char* file, size_t line, size_t column);
+void laxer_add_token(laxer_T* laxer, int type, char* arg, const char* file, size_t line, size_t column);
 
 void laxer_tokenize_num(laxer_T* laxer);
 

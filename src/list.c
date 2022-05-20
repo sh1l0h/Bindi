@@ -25,9 +25,6 @@ void *list_get(list_T* list, size_t i){
 
 void list_free(list_T* list)
 {
-	for(int i = 0; i < list->size; i++)
-		free(*(list->list+i*list->element_size));
-
 	free(list->list);
 	free(list);
 }

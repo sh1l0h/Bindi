@@ -25,7 +25,7 @@ char laxer_get_curr_char(laxer_T* laxer)
 	return '\0';
 }
 
-void laxer_add_token(laxer_T* laxer, int type, arg_T* arg, const char* file, size_t line, size_t column)
+void laxer_add_token(laxer_T* laxer, int type, char* arg, const char* file, size_t line, size_t column)
 {
 	if(laxer->tokens_size == 0) laxer->tokens = (token_T*) calloc(laxer->allocated_tokens_size, sizeof(token_T));
 
@@ -54,11 +54,8 @@ void laxer_tokenize_num(laxer_T* laxer)
 	laxer->curr--;
 	num = (char*) realloc(num, (num_len+1)*sizeof(char)); 
 	num[num_len] = '\0';
-		
-	arg_T* arg = (arg_T*) malloc(sizeof(arg_T));
-	arg->_str = num;
 
-	laxer_add_token(laxer, NUM, arg, laxer->file, laxer->line, laxer->column);
+	laxer_add_token(laxer, NUM, num, laxer->file, laxer->line, laxer->column);
 	laxer->column += num_len;
 }
 
@@ -79,10 +76,7 @@ void laxer_tokenize_word(laxer_T* laxer)
 	word = (char*) realloc(word, (str_len+1)*sizeof(char)); 
 	word[str_len] = '\0';
 
-	arg_T* arg = (arg_T*) malloc(sizeof(arg_T));
-	arg->_str = word;
-
-	laxer_add_token(laxer, WORD, arg, laxer->file, laxer->line, laxer->column);
+	laxer_add_token(laxer, WORD, word, laxer->file, laxer->line, laxer->column);
 	laxer->column += str_len;
 }
 
@@ -122,10 +116,7 @@ void laxer_tokenize_str(laxer_T* laxer)
 	str = (char*) realloc(str, (str_len + 1)*sizeof(char));
 	str[str_len] = '\0';
 
-	arg_T* arg = (arg_T*) malloc(sizeof(arg_T));
-	arg->_str = str;
-
-	laxer_add_token(laxer, STR, arg, laxer->file, laxer->line, column);
+	laxer_add_token(laxer, STR, str, laxer->file, laxer->line, column);
 }
 
 void laxer_skip_line_comment(laxer_T* laxer)
@@ -207,6 +198,10 @@ void laxer_advance(laxer_T* laxer)
 			laxer_add_token(laxer, RIGHT_SB, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 
+		case ',':
+			laxer_add_token(laxer, COMMA, NULL, laxer->file, laxer->line, laxer->column++);
+			break;
+
 		case '"':
 			laxer_tokenize_str(laxer);
 			break;
@@ -217,27 +212,28 @@ void laxer_advance(laxer_T* laxer)
 
 		case '<':
 			if(laxer_match(laxer, '|')) laxer_skip_mul_line_comment(laxer);
-			else if (laxer_match(laxer, '=')) laxer_add_token(laxer, LEQ, NULL, laxer->file, laxer->line, laxer->column++);
+			else if(laxer_match(laxer, '=')) laxer_add_token(laxer, LEQ, NULL, laxer->file, laxer->line, laxer->column-2);
+			else if(laxer_match(laxer, '-')) laxer_add_token(laxer, LEFT_ARR, NULL, laxer->file, laxer->line, laxer->column-2);
 			else laxer_add_token(laxer, LT, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 
 		case '>':
-			if(laxer_match(laxer, '=')) laxer_add_token(laxer, GEQ, NULL, laxer->file, laxer->line, laxer->column++);
+			if(laxer_match(laxer, '=')) laxer_add_token(laxer, GEQ, NULL, laxer->file, laxer->line, laxer->column-2);
 			else laxer_add_token(laxer, GT, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 
 		case '!':
-			if(laxer_match(laxer, '=')) laxer_add_token(laxer, NEQ, NULL, laxer->file, laxer->line, laxer->column++);
+			if(laxer_match(laxer, '=')) laxer_add_token(laxer, NEQ, NULL, laxer->file, laxer->line, laxer->column-2);
 			else laxer_add_token(laxer, BANG, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 
 		case '=':
-			if(laxer_match(laxer, '=')) laxer_add_token(laxer, EQ_EQ, NULL, laxer->file, laxer->line, laxer->column);
+			if(laxer_match(laxer, '=')) laxer_add_token(laxer, EQ_EQ, NULL, laxer->file, laxer->line, laxer->column-2);
 			else laxer_add_token(laxer, EQ, NULL, laxer->file, laxer->line, laxer->column);
 			break;
 			
 		case '-':
-			if (laxer_match(laxer, '>')) laxer_add_token(laxer, RIGHT_ARR, NULL, laxer->file, laxer->line, laxer->column);
+			if (laxer_match(laxer, '>')) laxer_add_token(laxer, RIGHT_ARR, NULL, laxer->file, laxer->line, laxer->column-2);
 			else laxer_add_token(laxer, MINUS, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 
@@ -283,7 +279,6 @@ void laxer_free(laxer_T* laxer)
 {
 	for(int i = 0; i < laxer->tokens_size; i++){
 		if((laxer->tokens[i]).arg){
-			free((laxer->tokens[i]).arg->_str);
 			free((laxer->tokens[i]).arg);
 		}
 	}

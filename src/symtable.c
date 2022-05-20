@@ -13,15 +13,20 @@ symtab_T* symtab_init()
 	return result;
 }
 
-symbol_T* symbol_init(char* name, int type, int scope, size_t size, int offset)
+void symtab_free(symtab_T* table){
+	for(int i = 0; i < table->size; i++){
+		list_free(table->stack[i]);
+	}
+	free(table->stack);
+}
+
+symbol_T* symbol_init(char* name, type_T* type, int scope)
 {
 	symbol_T* result = (symbol_T*) malloc(sizeof(symbol_T));
 
 	result->name = name;
 	result->type = type;
 	result->scope = scope;
-	result->size = size;
-	result->offset = offset;
 
 	return result;
 }

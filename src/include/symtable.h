@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "list.h"
+#include "type.h"
 
 typedef struct {
 	list_T** stack;
@@ -13,23 +14,19 @@ typedef struct {
 typedef struct {
 	char* name;
 
-	enum {
-		SYM_INT,
-		SYM_BOOL
-	} type;
-	
+	type_T* type;
+
 	enum {
 		SCOPE_GLOBAL,
 		SCOPE_LOCAL
 	} scope;
 
-	size_t size;
-	int offset;
 } symbol_T;
 
 symtab_T* symtab_init();
+void symtab_free();
 
-symbol_T* symbol_init(char* name, int type, int scope, size_t size, int offset);
+symbol_T* symbol_init(char* name, type_T* type, int scope);
 
 void symtab_enter_scope(symtab_T* table);
 void symtab_exit_scope(symtab_T* table);

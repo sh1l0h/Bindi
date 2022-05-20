@@ -5,8 +5,11 @@
 typedef struct {
 	enum {
 		AST_PROG,
-		AST_VADEC,
 
+		AST_VADEC,
+		AST_FUNDEC,
+
+		AST_TE,
 		AST_TYPE,
 
 		AST_ST,
@@ -22,12 +25,18 @@ typedef struct {
 		AST_U,
 		AST_TERM,
 
+		AST_ID,
+
 		AST_PLUS,
 		AST_MINUS,
 		AST_STAR,
 		AST_SLASH,
 		AST_CARET,
 		AST_BANG,
+
+		AST_DOT,
+		AST_COMMA,
+
 		AST_EQ,
 		AST_EQ_EQ,
 		AST_LT,
@@ -47,6 +56,7 @@ typedef struct {
 		AST_RIGHT_P,
 
 		AST_RIGHT_ARR,
+		AST_LEFT_ARR,
 
 		AST_IF,
 		AST_ELSE,
@@ -62,9 +72,9 @@ typedef struct {
 		AST_FALSE,
 
 		AST_PRINT,
-
-		AST_INT,
-
+		AST_VOID,
+		AST_NONE,
+		
 		AST_BEGIN,
 		AST_END,
 		
@@ -90,8 +100,10 @@ int AST_has_child_with_type(AST_T* tree, int type);
 
 int AST_is_terminal(AST_T* tree);
 
-char* AST_get_name(AST_T* word);
+char* AST_get_arg(AST_T* word);
 
 void AST_free(AST_T* tree);
+
+size_t AST_count_nodes(AST_T* tree);
 
 #endif

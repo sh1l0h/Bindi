@@ -1,1 +1,15 @@
-print -1;
+let a: long;
+let b: long;
+let c: long;
+
+main : void -> void {
+    a = 0;
+    b = 1;
+    while a < 20000000000000000 begin
+        print a;
+        c = a + b;
+        a = b;
+        b = c;
+    end
+    print a;
+}

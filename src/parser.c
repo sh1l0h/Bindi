@@ -30,25 +30,22 @@ int parser_match(parser_T* parser, int argc, ...)
 
 int parser_match_keyword(parser_T* parser, const char* keyword)
 {
-	if(parser->curr->type == WORD && !strcmp(parser->curr->arg->_str, keyword)){
+	if(parser->curr->type == WORD && !strcmp(parser->curr->arg, keyword)){
 		parser->curr++;
 		return 1;
 	}
 	return 0;
 }
 
-void parser_expect(parser_T* parser, int argc, ...)
+void parser_expect(parser_T* parser, int type)
 {
-	va_list l;
-	va_start(l, argc);
-	for(int i = 0; i < argc; i++){
-		if(va_arg(l, int)== parser->curr->type){
-			parser->curr++;
-			return;
-		}
+	if(type == parser->curr->type){
+		parser->curr++;
+		return;
 	}
 	//TODO: free everything  
-	printf("%s:%ld:%ld: error: Unexpected token with type %s\n", parser->curr->file, parser->curr->line, parser->curr->column, token_type_to_str(parser->curr->type));
+	printf("%s:%ld:%ld: error: Expected type %s, but found %s\n", parser->curr->file, parser->curr->line, parser->curr->column, token_type_to_str(type), token_type_to_str(parser->curr->type));
+	exit(1);
 }
 
 AST_T* parser_parse_prog(parser_T* parser)
@@ -57,9 +54,75 @@ AST_T* parser_parse_prog(parser_T* parser)
 
 	while(parser_match(parser, 1, T_EOF) == -1){
 		if(parser_match_keyword(parser, "let"))	AST_add_child(result, parser_parse_VaDec(parser));
-		else AST_add_child(result, parser_parse_St(parser));
+		else AST_add_child(result, parser_parse_FunDec(parser));
 	}
 
+	return result;
+}
+
+AST_T* parser_parse_FunDec(parser_T* parser)
+{
+	AST_T* result = AST_init(AST_FUNDEC);
+	AST_add_child(result, parser_parse_WORD(parser));
+	parser_expect(parser, COLON);
+	AST_add_child(result, AST_init(AST_COLON));
+	if(parser_match_keyword(parser, "void")){
+		AST_add_child(result, AST_init(AST_VOID));
+	}
+	else if(parser->curr->type == WORD){
+		AST_add_child(result, parser_parse_WORD(parser));
+		parser_expect(parser, COLON);
+		AST_add_child(result, AST_init(COLON));
+		AST_add_child(result, parser_parse_TE(parser));
+	}
+	else{
+		parser_expect(parser, LEFT_P);
+		AST_add_child(result, AST_init(AST_LEFT_P));
+		AST_add_child(result, parser_parse_WORD(parser));
+		parser_expect(parser, COLON);
+		AST_add_child(result, AST_init(COLON));
+		AST_add_child(result, parser_parse_TE(parser));
+		while(parser_match(parser, 2, RIGHT_P, T_EOF) == -1){
+			parser_expect(parser, COMMA);
+			AST_add_child(result, AST_init(AST_COMMA));
+			AST_add_child(result, parser_parse_WORD(parser));
+			parser_expect(parser, COLON);
+			AST_add_child(result, AST_init(AST_COLON));
+			AST_add_child(result, parser_parse_TE(parser));
+		}
+		if((parser->curr -1)->type == T_EOF) return NULL; // add error
+		AST_add_child(result, AST_init(AST_RIGHT_P));
+	}
+	parser_expect(parser, RIGHT_ARR);
+	AST_add_child(result, AST_init(AST_RIGHT_ARR));
+	AST_add_child(result, parser_parse_TE(parser));
+	parser_expect(parser, LEFT_B);
+	AST_add_child(result, AST_init(AST_LEFT_B));
+	while(parser_match(parser, 2, T_EOF, RIGHT_B) == -1) AST_add_child(result, parser_parse_St(parser));
+	if((parser->curr -1)->type == T_EOF) return NULL; // add error
+	AST_add_child(result, AST_init(AST_RIGHT_B));
+	return result;
+																	 
+}
+
+AST_T* parser_parse_TE(parser_T* parser)
+{
+	AST_T* result = AST_init(AST_TE);
+	if(parser_match(parser,1, RIGHT_ARR) != -1){
+		AST_add_child(result, AST_init(AST_RIGHT_ARR));
+		AST_add_child(result, parser_parse_type(parser));
+		return result;
+	}
+	if(parser_match_keyword(parser, "void")){
+		AST_add_child(result, AST_init(AST_VOID));
+		return result;
+	}
+	AST_add_child(result, parser_parse_type(parser));
+	if(parser_match(parser,1,LEFT_SB) != -1){
+		AST_add_child(result, AST_init(AST_LEFT_SB));
+		parser_expect(parser, RIGHT_SB);
+		AST_add_child(result, AST_init(AST_RIGHT_SB));
+	}
 	return result;
 }
 
@@ -69,7 +132,7 @@ AST_T* parser_parse_VaDec(parser_T* parser)
 
 	AST_add_child(result, AST_init(AST_LET));
 	AST_add_child(result, parser_parse_WORD(parser));
-	parser_expect(parser, 1, COLON);
+	parser_expect(parser, COLON);
 	AST_add_child(result, AST_init(AST_COLON));
 
 	if(parser_match(parser, 1, RIGHT_ARR) != -1){
@@ -81,11 +144,11 @@ AST_T* parser_parse_VaDec(parser_T* parser)
 		if(parser_match(parser, 1, LEFT_B) != -1){
 			AST_add_child(result, AST_init(AST_LEFT_B));
 			AST_add_child(result, parser_parse_NUM(parser));
-			parser_expect(parser, 1, RIGHT_B); 
+			parser_expect(parser, RIGHT_B); 
 			AST_add_child(result, AST_init(AST_RIGHT_B));
 		}
 	}
-	parser_expect(parser, 1, SEMICOLON);
+	parser_expect(parser, SEMICOLON);
 	AST_add_child(result, AST_init(AST_SEMICOLON));
 
 	return result;
@@ -94,7 +157,9 @@ AST_T* parser_parse_VaDec(parser_T* parser)
 AST_T* parser_parse_type(parser_T* parser)
 {
 	AST_T* result = AST_init(AST_TYPE);
-	if(parser_match_keyword(parser, "int")) AST_add_child(result, AST_init(AST_INT));
+	list_free(result->children);
+	result->children = list_init(sizeof(token_T*));
+	list_add(result->children, parser->curr++);
 	return result;
 }
 
@@ -105,11 +170,8 @@ AST_T* parser_parse_St(parser_T* parser)
 
 	if(parser_match_keyword(parser, "print")){
 		AST_add_child(result, AST_init(AST_PRINT));
-		parser_T* tp = parser_init(parser->curr);
-		if(parser_is_BE(tp)) AST_add_child(result, parser_parse_BE(parser));
-		else AST_add_child(result, parser_parse_E(parser));
-		free(tp);
-		parser_expect(parser, 1, SEMICOLON);
+		AST_add_child(result, parser_parse_BE(parser));
+		parser_expect(parser, SEMICOLON);
 		AST_add_child(result, AST_init(AST_SEMICOLON));
 	}
 	else if(parser_match_keyword(parser, "if")){
@@ -130,11 +192,11 @@ AST_T* parser_parse_St(parser_T* parser)
 		AST_add_child(result, parser_parser_BLOCK(parser));
 	}
 	else{
-		AST_add_child(result, parser_parse_WORD(parser));
-		parser_expect(parser, 1, EQ);
+		AST_add_child(result, parser_parse_id(parser));
+		parser_expect(parser, EQ);
 		AST_add_child(result, AST_init(AST_EQ));
-		AST_add_child(result, parser_parse_E(parser));
-		parser_expect(parser, 1, SEMICOLON);
+		AST_add_child(result, parser_parse_BE(parser));
+		parser_expect(parser, SEMICOLON);
 		AST_add_child(result, AST_init(AST_SEMICOLON));
 	}
 
@@ -153,33 +215,6 @@ AST_T* parser_parser_BLOCK(parser_T* parser)
 	return result;
 }
 
-int parser_is_BE(parser_T* parser)
-{
-	if(parser_is_BT(parser)){
-		if(parser_match_keyword(parser, "or")) return parser_is_BE(parser);
-		return 1;
-	}
-	return 0;
-}
-
-int parser_is_BT(parser_T* parser)
-{
-	if(parser_is_BU(parser)){
-		if(parser_match_keyword(parser, "and")) return parser_is_BT(parser);
-		return 1;
-	}
-	return 0;
-}
-int parser_is_BU(parser_T* parser)
-{
-	return parser_match(parser, 1, BANG) != -1 && parser_is_BU(parser) || parser_is_BP(parser);
-
-}
-int parser_is_BP(parser_T* parser)
-{
-	return parser_match(parser, 1, LEFT_P) != -1 && parser_is_BE(parser) && parser_match(parser, 1, RIGHT_P) != -1 || parser_is_E(parser) && parser_match(parser, 6, GT, LT, GEQ, LEQ, EQ_EQ, NEQ) != -1 && parser_is_E(parser);
-}
-
 AST_T* parser_parse_BE(parser_T* parser)
 {
 	AST_T* result = AST_init(AST_BE);
@@ -193,6 +228,7 @@ AST_T* parser_parse_BE(parser_T* parser)
 
 	return result;
 }
+
 AST_T* parser_parse_BT(parser_T* parser)
 {
 	AST_T* result = AST_init(AST_BT);
@@ -221,75 +257,37 @@ AST_T* parser_parse_BP(parser_T* parser)
 {
 	AST_T* result = AST_init(AST_BP);
 
-	parser_T* tp = parser_init(parser->curr);
-	if(parser_match_keyword(parser, "true")) AST_add_child(result, AST_init(AST_TRUE));
-	else if(parser_match_keyword(parser, "false")) AST_add_child(result, AST_init(AST_FALSE));
-	else if(parser_is_E(tp)){
-		AST_add_child(result, parser_parse_E(parser));
-		int t = parser_match(parser, 6, GT, LT, GEQ, LEQ, EQ_EQ, NEQ);
-		if(t != -1){
-			switch(t){
-				case GT:
-					AST_add_child(result, AST_init(AST_GT));
-					break;
+	AST_add_child(result, parser_parse_E(parser));
+	int t = parser_match(parser, 6, GT, LT, GEQ, LEQ, EQ_EQ, NEQ);
+	if(t != -1){
+		switch(t){
+			case GT:
+				AST_add_child(result, AST_init(AST_GT));
+				break;
 
-				case LT:
-					AST_add_child(result, AST_init(AST_LT));
-					break;
+			case LT:
+				AST_add_child(result, AST_init(AST_LT));
+				break;
 
-				case GEQ:
-					AST_add_child(result, AST_init(AST_GEQ));
-					break;
+			case GEQ:
+				AST_add_child(result, AST_init(AST_GEQ));
+				break;
 
-				case LEQ:
-					AST_add_child(result, AST_init(AST_LEQ));
-					break;
+			case LEQ:
+				AST_add_child(result, AST_init(AST_LEQ));
+				break;
 
-				case EQ_EQ:
-					AST_add_child(result, AST_init(AST_EQ_EQ));
-					break;
+			case EQ_EQ:
+				AST_add_child(result, AST_init(AST_EQ_EQ));
+				break;
 
-				case NEQ:
-					AST_add_child(result, AST_init(AST_NEQ));
-					break;
-			}
+			case NEQ:
+				AST_add_child(result, AST_init(AST_NEQ));
+				break;
 		}
 		AST_add_child(result, parser_parse_E(parser));
 	}
-	else if(parser_match(parser, 1, LEFT_P) != -1){
-		AST_add_child(result, AST_init(AST_LEFT_P));
-		AST_add_child(result, parser_parse_BE(parser));
-		parser_expect(parser, 1, RIGHT_P);
-		AST_add_child(result, AST_init(AST_RIGHT_P));
-	}
 	return result;
-}
-
-int parser_is_E(parser_T* parser)
-{
-	if(parser_is_T(parser)){
-		if(parser_match(parser, 2, PLUS, MINUS) != -1) return parser_is_E(parser);
-		return 1;
-	}
-	return 0;
-}
-int parser_is_T(parser_T* parser)
-{
-	if(parser_is_U(parser)){
-		if(parser_match(parser, 2, STAR, SLASH) != -1) return parser_is_T(parser);
-		return 1;
-	}
-	return 0;
-}
-int parser_is_U(parser_T* parser)
-{
-	return parser_match(parser, 2, MINUS, RIGHT_ARR) != -1 && parser_is_U(parser) || parser_is_P(parser);
-}
-int parser_is_P(parser_T* parser)
-{
-	int t = (parser->curr)->type == WORD ||(parser->curr)->type == NUM;
-	if(t) parser->curr++;
-	return  t || parser_match(parser, 1, LEFT_P) != -1 && parser_is_E(parser) && parser_match(parser, 1, RIGHT_P) != -1;
 }
 
 AST_T* parser_parse_E(parser_T* parser)
@@ -325,10 +323,11 @@ AST_T* parser_parse_U(parser_T* parser)
 {
 	AST_T* result = AST_init(AST_U);
 	
-	int t = parser_match(parser, 2, RIGHT_ARR, MINUS);
+	int t = parser_match(parser, 3, RIGHT_ARR, LEFT_ARR, MINUS);
 	if(t != -1){
 		if(t == RIGHT_ARR) AST_add_child(result, AST_init(AST_RIGHT_ARR));
 		else if(t == MINUS)	AST_add_child(result, AST_init(AST_MINUS));
+		else AST_add_child(result, AST_init(AST_LEFT_ARR));
 
 		AST_add_child(result, parser_parse_U(parser));
 	}
@@ -343,9 +342,10 @@ AST_T* parser_parse_P(parser_T* parser)
 	if(parser->curr->type == NUM){
 		AST_add_child(result, parser_parse_NUM(parser));
 	}
-	else if(parser->curr->type == WORD){
-		AST_add_child(result, parser_parse_WORD(parser));
-	}
+	else if(parser_match_keyword(parser, "true")) AST_add_child(result, AST_init(AST_TRUE));
+	else if(parser_match_keyword(parser, "false")) AST_add_child(result, AST_init(AST_FALSE));
+	else if(parser_match_keyword(parser, "none")) AST_add_child(result, AST_init(AST_NONE));
+	else if(parser->curr->type == WORD)	AST_add_child(result, parser_parse_id(parser));
 	else if(parser->curr->type == STR){
 		AST_T* child = AST_init(AST_STR);
 		list_free(child->children);
@@ -355,10 +355,36 @@ AST_T* parser_parse_P(parser_T* parser)
 	}
 	else if(parser_match(parser, 1, LEFT_P)){
 		AST_add_child(result, AST_init(AST_LEFT_P));
-		AST_add_child(result, parser_parse_E(parser));
-		parser_expect(parser, 1, RIGHT_P);
+		AST_add_child(result, parser_parse_BE(parser));
+		parser_expect(parser, RIGHT_P);
 		AST_add_child(result, AST_init(AST_RIGHT_P));
 	}
+	return result;
+}
+
+AST_T* parser_parse_id(parser_T* parser)
+{
+	AST_T* result = AST_init(AST_ID);
+
+	AST_add_child(result, parser_parse_WORD(parser));
+	int t = parser_match(parser, 2, DOT, LEFT_SB);
+	if(t == -1) return result;
+
+	if(t == DOT) {
+		AST_add_child(result, AST_init(AST_DOT));
+		AST_add_child(result, parser_parse_id(parser));
+	}
+	else{
+		AST_add_child(result, AST_init(AST_LEFT_SB));
+		AST_add_child(result, parser_parse_BE(parser));
+		parser_expect(parser, RIGHT_SB);
+		AST_add_child(result, AST_init(AST_RIGHT_SB));
+		if(parser_match(parser, 1, DOT)){
+			AST_add_child(result, AST_init(AST_DOT));
+			AST_add_child(result, parser_parse_id(parser));
+		}
+	}
+
 	return result;
 }
 

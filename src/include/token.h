@@ -3,11 +3,6 @@
 
 #include <stdlib.h>
 
-typedef union {
-	int  _int;
-	char* _str;
-} arg_T;
-
 typedef struct {
 	enum {
 		PLUS,
@@ -16,6 +11,10 @@ typedef struct {
 		SLASH,
 		CARET,
 		BANG,
+
+		DOT,
+		COMMA,
+
 		EQ,
 		EQ_EQ,
 		LT,
@@ -35,6 +34,7 @@ typedef struct {
 		RIGHT_P,
 
 		RIGHT_ARR,
+		LEFT_ARR,
 
 		WORD,
 		STR,
@@ -45,14 +45,14 @@ typedef struct {
 		T_EOF
 	} type;
 
-	arg_T* arg;
+	char* arg;
 
 	const char* file;
 	size_t line;
 	size_t column;
 } token_T;
 
-token_T* init_token(int type, arg_T* arg, char* file, size_t line, size_t column);
+token_T* init_token(int type, char* arg, char* file, size_t line, size_t column);
 
 const char* token_type_to_str(int type);
 

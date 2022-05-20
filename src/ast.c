@@ -3,55 +3,62 @@
 #include "./include/token.h"
 
 const int terminals[] = {
-		AST_PLUS,
-		AST_MINUS,
-		AST_STAR,
-		AST_SLASH,
-		AST_CARET,
-		AST_BANG,
-		AST_EQ,
-		AST_EQ_EQ,
-		AST_LT,
-		AST_GT,
-		AST_GEQ,
-		AST_LEQ,
-		AST_NEQ,
+	AST_TYPE,
 
-		AST_COLON,
-		AST_SEMICOLON,
+	AST_PLUS,
+	AST_MINUS,
+	AST_STAR,
+	AST_SLASH,
+	AST_CARET,
+	AST_BANG,
 
-		AST_LEFT_B,
-		AST_RIGHT_B,
-		AST_LEFT_SB,
-		AST_RIGHT_SB,
-		AST_LEFT_P,
-		AST_RIGHT_P,
+	AST_DOT,
+	AST_COMMA,
 
-		AST_RIGHT_ARR,
+	AST_EQ,
+	AST_EQ_EQ,
+	AST_LT,
+	AST_GT,
+	AST_GEQ,
+	AST_LEQ,
+	AST_NEQ,
 
-		AST_IF,
-		AST_ELSE,
+	AST_COLON,
+	AST_SEMICOLON,
 
-		AST_WHILE,
+	AST_LEFT_B,
+	AST_RIGHT_B,
+	AST_LEFT_SB,
+	AST_RIGHT_SB,
+	AST_LEFT_P,
+	AST_RIGHT_P,
 
-		AST_AND,
-		AST_OR,
+	AST_RIGHT_ARR,
+	AST_LEFT_ARR,
 
-		AST_LET,
+	AST_IF,
+	AST_ELSE,
+
+	AST_WHILE,
+
+	AST_AND,
+	AST_OR,
+
+	AST_LET,
 		
-		AST_TRUE,
-		AST_FALSE,
+	AST_TRUE,
+	AST_FALSE,
 
-		AST_PRINT,
+	AST_PRINT,
+	AST_VOID,
+	AST_NONE,
 
-		AST_INT,
-
-		AST_BEGIN,
-		AST_END,
+	AST_BEGIN,
+	AST_END,
 		
-		AST_WORD,
-		AST_STR,
-		AST_NUM
+	AST_WORD,
+	AST_STR,
+	AST_NUM
 };
 
 const int num_of_terminals = sizeof(terminals)/sizeof(int);
@@ -90,9 +97,9 @@ int AST_is_terminal(AST_T* tree)
 	return 0;
 }
 
-char* AST_get_name(AST_T* word)
+char* AST_get_arg(AST_T* word)
 {
-	return ((token_T*)*word->children->list)->arg->_str;
+	return ((token_T*)*word->children->list)->arg;
 }
 
 void AST_free(AST_T* tree)
@@ -102,4 +109,13 @@ void AST_free(AST_T* tree)
 	free(tree->children->list);
 	free(tree->children);
 	free(tree);
+}
+
+size_t AST_count_nodes(AST_T* tree)
+{
+	if(AST_is_terminal(tree)) return 1;
+	size_t sum = 0;
+	for(int i = 0; i < tree->children->size; i++)
+		sum += AST_count_nodes(AST_get_child(tree, i));
+	return sum +1;
 }

@@ -1,7 +1,7 @@
 #include "include/token.h"
 #include <stdio.h>
 
-token_T* init_token(int type, arg_T* arg, char* file, size_t line, size_t column)
+token_T* init_token(int type, char* arg, char* file, size_t line, size_t column)
 {
 	token_T* result = (token_T*) malloc(sizeof(token_T));
 	result->type = type;
@@ -22,6 +22,10 @@ const char* token_type_to_str(int type)
 		case SLASH:		return "SLASH";
 		case CARET:		return "CARET";
 		case BANG:      return "BANG";
+
+		case DOT:       return "DOT";
+		case COMMA:     return "COMMA";
+
 		case EQ:		return "EQ";
 		case EQ_EQ:		return "EQ_EQ";
 		case LT:		return "LT";
@@ -41,6 +45,7 @@ const char* token_type_to_str(int type)
 		case RIGHT_P:	return "RIGHT_P";
 
 		case RIGHT_ARR: return "RIGHT_ARR";
+		case LEFT_ARR: return "LEFT_ARR";
 
 		case WORD:		return "WORD";
 		case STR:		return "STR";
