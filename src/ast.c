@@ -6,17 +6,23 @@ const int terminals[] = {
 	AST_TYPE,
 
 	AST_PLUS,
+	AST_PLUS_PLUS,
 	AST_MINUS,
+	AST_MINUS_MINUS,
 	AST_STAR,
 	AST_SLASH,
 	AST_CARET,
 	AST_BANG,
+
+	AST_MOD,
 
 	AST_DOT,
 	AST_COMMA,
 
 	AST_EQ,
 	AST_EQ_EQ,
+	AST_PLUS_EQ,
+	AST_MINUS_EQ,
 	AST_LT,
 	AST_GT,
 	AST_GEQ,
@@ -50,6 +56,7 @@ const int terminals[] = {
 	AST_FALSE,
 
 	AST_PRINT,
+	AST_RETURN,
 	AST_VOID,
 	AST_NONE,
 
@@ -63,12 +70,14 @@ const int terminals[] = {
 
 const int num_of_terminals = sizeof(terminals)/sizeof(int);
 
-AST_T *AST_init(int type)
+AST_T *AST_init(int type, const char* file, size_t line, size_t column)
 {
 	AST_T *result = (AST_T*) malloc(sizeof(AST_T));
 	result->type = type;
 	result->children = list_init(sizeof(AST_T*));
-
+	result->file = file;
+	result->line = line;
+	result->column = column;
 	return result;
 }
 
@@ -84,9 +93,10 @@ void AST_add_child(AST_T* tree, AST_T* child)
 
 int AST_has_child_with_type(AST_T* tree, int type)
 {
+	if(tree->type == type) return 1;
+	if(AST_is_terminal(tree)) return 0;
 	for(int i = 0; i < tree->children->size; i++){
-		AST_T* child = AST_get_child(tree, i);
-		if(child->type == type || AST_has_child_with_type(child, type)) return 1;
+		if(AST_has_child_with_type(AST_get_child(tree,i),type)) return 1;
 	}
 	return 0;
 }
@@ -119,3 +129,23 @@ size_t AST_count_nodes(AST_T* tree)
 		sum += AST_count_nodes(AST_get_child(tree, i));
 	return sum +1;
 }
+		
+size_t AST_count_parameters(AST_T* tree)
+{
+	size_t result = 0;
+	for(int i = 0; i < tree->children->size; i++){
+		AST_T* curr = AST_get_child(tree, i);
+		if(curr->type == AST_PAR) result++;
+	}
+	return result;
+}
+
+AST_T* AST_get_parameter(AST_T* tree, int id){
+	int count = 0;
+	for(int i = 0; i < tree->children->size; i++){
+		if(count == id) return AST_get_child(tree, i);
+		count++;
+	}
+	return NULL;
+}
+

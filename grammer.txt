@@ -1,40 +1,45 @@
-prog	-> (VaDec | FunDec)* EOF
+prog	  -> (VaDec | FunDec)* EOF
 
-VaDec	-> 'let' WORD ':' type ';' |
-		   'let' WORD ':' '->' type ';' |
-		   'let' WORD ':' type '[' NUM ']' ';' |
+FunDec 	  -> WORD ':' pars '->' VaType '{' St* '}' 
+TypeDec   -> 'struct' WORD '{' par ',')* '}'
 
-FunDec 	-> WORD ':' WORD ':' TE '->' TE '{' St* '}' |
-		   WORD ':' 'void' '->' TE '{' St* '}' |
-		   WORD ':' '(' WORD ':' TE (',' WORD ':' TE)* ')' '->' TE '{' St* '}'
+VaDec	  -> 'let' WORD ':' VaType ';' 
 
-TE 		-> type '[' ']' | '->' type | type | 'void'
-type	-> 'int' | 'long' | 'byte' | 'bool' | 'char' | 'float' | WORD 
+par		  -> WORD ':' VaType
+pars 	  -> '(' (par (',' par)*)? ')'
 
-St		->  id '=' BE ';' |
-		   'if' BE St | 'if' BE St 'else' St | 
-		   'while' BE St |
-		   'return' BE ';' |
-		   'print' BE ';' |
-		   'let' WORD ':' TE ';' |
-		   'let' WORD ':' TE '=' BE ';' |
-		   BLOCK
+type	  -> 'void' | 'int' | 'long' | 'byte' | 'bool' | 'char' | 'float' | WORD 
 
-BLOCK	-> 'begin' (St)* 'end'
+VaType    -> type | '->' VaType 
+locVarDec -> 'let' WORD ':' VaType |
+		  	 'let' WORD ':' VaType '=' BE 
 
-BE		-> BT | BT 'or' BE
-BT 		-> BU | BU 'and' BT
-BU		-> BP | !BU
-BP		-> E | E '>' E | E '<' E | E '>=' E | E '<=' E | E '==' E | E '!=' E 
-E		-> T | T '+' E | T '-' E
-T		-> U | U '*' T | U '/' T 
-U		-> P | '-' U | '->' U | '<-' U 
-P		-> NUM | id | STR | 'none' | '(' BE ')' | 'true' | 'false'  
+St		  -> BE ('=' | '+=' | '-=' | '*=' | '/-') (BE) ';' |
+		     'if' BE St | 'if' BE St 'else' St | 
+		     'while' BE St |
+		     'return' BE ';' |
+		     'print' BE ';' |
+			 locVarDec ';'|
+		     BLOCK |
+			 FunCall
+			 
 
-id		-> WORD | WORD '.' id | WORD '[' BE ']' | WORD '[' BE ']' '.' id
+BLOCK	  -> 'begin' (St)* 'end'
 
-STR		-> #'"."'
-NUM		-> Di (','Di+)?
-WORD	-> Le {Le|Di|'_'}
-Le		-> #'[A-Za-z]'
-Dig		-> #'[0-9]'
+BE		  -> BT | BT 'or' BE
+BT 		  -> BU | BU 'and' BT
+BU		  -> BP | !BU
+BP		  -> E | E '>' E | E '<' E | E '>=' E | E '<=' E | E '==' E | E '!=' E 
+E		  -> T | T '+' E | T '-' E
+T		  -> U | U '*' T | U '/' T | U 'mod' T  
+U		  -> POST | '-' U | '->' U | '<-' U
+POST	  -> P | P ('[' BE ']' | '.' WORD | '++' | '--')*
+P		  -> NUM | WORD | STR | 'none' | '(' BE ')' | 'true' | 'false' 
+
+FunCall   -> WORD '(' (BE (',' BE)*)? ')'
+
+STR		  -> #'"."'
+NUM		  -> Di (','Di+)?
+WORD	  -> Le {Le|Di|'_'}
+Le		  -> #'[A-Za-z]'
+Dig		  -> #'[0-9]'

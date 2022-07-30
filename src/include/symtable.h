@@ -5,6 +5,7 @@
 #include "list.h"
 #include "type.h"
 
+
 typedef struct {
 	list_T** stack;
 	size_t allocated_size;
@@ -13,20 +14,21 @@ typedef struct {
 
 typedef struct {
 	char* name;
-
-	type_T* type;
+	var_type_T* type;
 
 	enum {
 		SCOPE_GLOBAL,
+		SCOPE_ARG,
 		SCOPE_LOCAL
 	} scope;
 
+	size_t offset;
 } symbol_T;
 
 symtab_T* symtab_init();
 void symtab_free();
 
-symbol_T* symbol_init(char* name, type_T* type, int scope);
+symbol_T* symbol_init(char* name, var_type_T* type, int scope);
 
 void symtab_enter_scope(symtab_T* table);
 void symtab_exit_scope(symtab_T* table);

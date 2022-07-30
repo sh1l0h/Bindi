@@ -2,7 +2,6 @@
 #include "./include/symtable.h"
 #include "./include/list.h"
 
-
 symtab_T* symtab_init()
 {
 	symtab_T* result = (symtab_T*) malloc(sizeof(symtab_T));
@@ -20,7 +19,7 @@ void symtab_free(symtab_T* table){
 	free(table->stack);
 }
 
-symbol_T* symbol_init(char* name, type_T* type, int scope)
+symbol_T* symbol_init(char* name, var_type_T* type, int scope)
 {
 	symbol_T* result = (symbol_T*) malloc(sizeof(symbol_T));
 
@@ -31,6 +30,7 @@ symbol_T* symbol_init(char* name, type_T* type, int scope)
 	return result;
 }
 
+
 void symtab_enter_scope(symtab_T* table)
 {
 	table->stack[table->size++] = list_init(sizeof(symbol_T));
@@ -39,7 +39,13 @@ void symtab_enter_scope(symtab_T* table)
 
 void symtab_exit_scope(symtab_T* table)
 {
-	list_free(table->stack[--table->size]);
+	list_T* s = symtab_get_scope(table);
+	for(int i = 0; i < s->size; i++){
+		symbol_T* sym = (symbol_T*) list_get(s, i);
+		if(sym->scope != SCOPE_ARG) free(sym); 
+	}
+	list_free(s);
+	table->size--;
 }
 
 void symtab_add_symbol(symtab_T* table, symbol_T* symbol)

@@ -1,6 +1,7 @@
 use "std.bnd"
 
 main : argv : string[] -> int {
+
 }
 
 fac : a : int -> int {

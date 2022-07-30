@@ -27,6 +27,8 @@ const char* token_type_to_str(int type)
 		case COMMA:     return "COMMA";
 
 		case EQ:		return "EQ";
+		case PLUS_EQ:   return "PLUS_EQ";
+		case MINUS_EQ:  return "MINUS_EQ";
 		case EQ_EQ:		return "EQ_EQ";
 		case LT:		return "LT";
 		case GT:		return "GT";

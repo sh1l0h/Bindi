@@ -1,0 +1,13 @@
+#ifndef __TYPE_H__
+#define __TYPE_H__
+
+typedef struct {
+	char* name;
+	size_t size;
+	enum {
+		T_PRIM,
+		T_ARRAY,
+		T_STRUCT
+	} type;
+} type_T;
+#endif

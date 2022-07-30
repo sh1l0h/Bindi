@@ -155,7 +155,9 @@ void laxer_advance(laxer_T* laxer)
 
 	switch (c){
 		case '+': 
-			laxer_add_token(laxer, PLUS, NULL, laxer->file, laxer->line, laxer->column++);
+			if(laxer_match(laxer, '+'))laxer_add_token(laxer, PLUS_PLUS, NULL, laxer->file, laxer->line, laxer->column-1); 
+			else if(laxer_match(laxer, '='))laxer_add_token(laxer, PLUS_EQ, NULL, laxer->file, laxer->line, laxer->column-1); 
+			else laxer_add_token(laxer, PLUS, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 
 		case '*': 
@@ -212,28 +214,30 @@ void laxer_advance(laxer_T* laxer)
 
 		case '<':
 			if(laxer_match(laxer, '|')) laxer_skip_mul_line_comment(laxer);
-			else if(laxer_match(laxer, '=')) laxer_add_token(laxer, LEQ, NULL, laxer->file, laxer->line, laxer->column-2);
-			else if(laxer_match(laxer, '-')) laxer_add_token(laxer, LEFT_ARR, NULL, laxer->file, laxer->line, laxer->column-2);
+			else if(laxer_match(laxer, '=')) laxer_add_token(laxer, LEQ, NULL, laxer->file, laxer->line, laxer->column-1);
+			else if(laxer_match(laxer, '-')) laxer_add_token(laxer, LEFT_ARR, NULL, laxer->file, laxer->line, laxer->column-1);
 			else laxer_add_token(laxer, LT, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 
 		case '>':
-			if(laxer_match(laxer, '=')) laxer_add_token(laxer, GEQ, NULL, laxer->file, laxer->line, laxer->column-2);
+			if(laxer_match(laxer, '=')) laxer_add_token(laxer, GEQ, NULL, laxer->file, laxer->line, laxer->column-1);
 			else laxer_add_token(laxer, GT, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 
 		case '!':
-			if(laxer_match(laxer, '=')) laxer_add_token(laxer, NEQ, NULL, laxer->file, laxer->line, laxer->column-2);
+			if(laxer_match(laxer, '=')) laxer_add_token(laxer, NEQ, NULL, laxer->file, laxer->line, laxer->column-1);
 			else laxer_add_token(laxer, BANG, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 
 		case '=':
-			if(laxer_match(laxer, '=')) laxer_add_token(laxer, EQ_EQ, NULL, laxer->file, laxer->line, laxer->column-2);
+			if(laxer_match(laxer, '=')) laxer_add_token(laxer, EQ_EQ, NULL, laxer->file, laxer->line, laxer->column-1);
 			else laxer_add_token(laxer, EQ, NULL, laxer->file, laxer->line, laxer->column);
 			break;
 			
 		case '-':
-			if (laxer_match(laxer, '>')) laxer_add_token(laxer, RIGHT_ARR, NULL, laxer->file, laxer->line, laxer->column-2);
+			if(laxer_match(laxer, '>')) laxer_add_token(laxer, RIGHT_ARR, NULL, laxer->file, laxer->line, laxer->column-1);
+			else if(laxer_match(laxer, '-'))laxer_add_token(laxer, MINUS_MINUS, NULL, laxer->file, laxer->line, laxer->column-1); 
+			else if(laxer_match(laxer, '='))laxer_add_token(laxer, MINUS_EQ, NULL, laxer->file, laxer->line, laxer->column-1); 
 			else laxer_add_token(laxer, MINUS, NULL, laxer->file, laxer->line, laxer->column++);
 			break;
 

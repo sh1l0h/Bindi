@@ -1,6 +1,8 @@
 #ifndef __AST_H__
 #define __AST_H__
+#include <stdio.h>
 #include "list.h"
+#include "type.h"
 
 typedef struct {
 	enum {
@@ -9,8 +11,13 @@ typedef struct {
 		AST_VADEC,
 		AST_FUNDEC,
 
-		AST_TE,
+		AST_PARTYPE,
+		AST_PAR,
+		AST_PARS,
+
 		AST_TYPE,
+		AST_VATYPE,
+		AST_LOCVADEC,
 
 		AST_ST,
 		AST_BLOCK,
@@ -19,26 +26,31 @@ typedef struct {
 		AST_BP,
 		AST_BU,
 		AST_BT,
-
 		AST_E,
+		AST_POST,
 		AST_P,
 		AST_U,
 		AST_TERM,
-
-		AST_ID,
+		AST_FUNCALL,
 
 		AST_PLUS,
+		AST_PLUS_PLUS,
 		AST_MINUS,
+		AST_MINUS_MINUS,
 		AST_STAR,
 		AST_SLASH,
 		AST_CARET,
 		AST_BANG,
+
+		AST_MOD,
 
 		AST_DOT,
 		AST_COMMA,
 
 		AST_EQ,
 		AST_EQ_EQ,
+		AST_PLUS_EQ,
+		AST_MINUS_EQ,
 		AST_LT,
 		AST_GT,
 		AST_GEQ,
@@ -72,6 +84,7 @@ typedef struct {
 		AST_FALSE,
 
 		AST_PRINT,
+		AST_RETURN,
 		AST_VOID,
 		AST_NONE,
 		
@@ -84,13 +97,16 @@ typedef struct {
 	} type;
 
 	list_T* children;
+	const char* file;
+	size_t line;
+	size_t column;
 } AST_T;
 
 extern const int terminals[];
 
 extern const int num_of_terminals;
 
-AST_T *AST_init(int type);
+AST_T *AST_init(int type, const char* file, size_t line, size_t column);
 
 AST_T *AST_get_child(AST_T* tree, int id);
 
@@ -105,5 +121,7 @@ char* AST_get_arg(AST_T* word);
 void AST_free(AST_T* tree);
 
 size_t AST_count_nodes(AST_T* tree);
+
+size_t AST_count_parameters(AST_T* tree);
 
 #endif

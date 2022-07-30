@@ -1,0 +1,17 @@
+main : () -> void {
+    let input: long = 989345275647;
+    let depth: int = 0;
+    while input != 1 begin
+        print "depth:\n";
+        print depth;
+        depth += 1;
+        print "value:\n";
+        print input;
+        if input mod 2 == 1 
+            input = 3*input +1;
+        else 
+            input = input / 2;
+    end
+    print "final depth:\n";
+    print depth;
+}

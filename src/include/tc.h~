@@ -1,0 +1,15 @@
+#ifndef __TC_H__
+#define __TC_H__
+#include "type.h"
+#include "ast.h"
+#include "code_generator.h"
+
+type_T* TC_get_type_E(CG_T* cg, AST_T* tree);
+type_T* TC_get_type_T(CG_T* cg, AST_T* tree);
+type_T* TC_get_type_U(CG_T* cg, AST_T* tree);
+type_T* TC_get_type_P(CG_T* cg, AST_T* tree);
+
+type_T* TC_get_type_id(CG_T* cg, AST_T* tree);
+type_T* TC_get_type_NUM(CG_T* cg, AST_T* tree);
+
+#endif 

@@ -6,7 +6,9 @@
 typedef struct {
 	enum {
 		PLUS,
+		PLUS_PLUS,
 		MINUS,
+		MINUS_MINUS,
 		STAR,
 		SLASH,
 		CARET,
@@ -17,6 +19,8 @@ typedef struct {
 
 		EQ,
 		EQ_EQ,
+		PLUS_EQ,
+		MINUS_EQ,
 		LT,
 		GT,
 		GEQ,
