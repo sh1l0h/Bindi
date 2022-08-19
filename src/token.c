@@ -55,6 +55,7 @@ const char* token_type_to_str(int type)
 		case END:		return "END";
 		case T_EOF:		return "T_EOF";
 	}
+    return "\0";
 }
 
 char* token_to_str(token_T* token)

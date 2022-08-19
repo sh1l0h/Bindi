@@ -140,7 +140,7 @@ void laxer_skip_mul_line_comment(laxer_T* laxer)
 			laxer->column++;
 		laxer->curr++;
 	}
-	if(c = '|'){
+	if(c == '|'){
 		laxer->curr++;
 		laxer->column += 2;
 	}
@@ -269,7 +269,8 @@ int laxer_match(laxer_T* laxer, char c)
 	}
 	return 0;
 }
-token_T* laxer_get_tokens(laxer_T* laxer)
+
+void laxer_get_tokens(laxer_T* laxer)
 {
 	while (laxer_get_curr_char(laxer) != '\0'){
 		laxer_advance(laxer);

@@ -39,7 +39,7 @@ char laxer_peek_char(laxer_T* laxer, int offset);
 
 int laxer_match(laxer_T* laxer, char c);
 
-token_T* laxer_get_tokens(laxer_T* laxer);
+void laxer_get_tokens(laxer_T* laxer);
 
 void laxer_free(laxer_T* laxer);
 	

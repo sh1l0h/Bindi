@@ -1137,7 +1137,7 @@ int CG_code(CG_T* cg, AST_T* tree)
 		case AST_POST:
 			{
 				if(tree->children->size == 1) return CG_code(cg, AST_get_child(tree,0));
-				var_type_t t = TC_get_type_P(cg, AST_get_child(tree,0));
+				var_type_T *t = TC_get_type_P(cg, AST_get_child(tree,0));
 				size_t size = var_type_size(t);
 				cg->is_value_needed = 1;
 				cg->curr_size = size;
@@ -1153,7 +1153,7 @@ int CG_code(CG_T* cg, AST_T* tree)
 							fprintf(cg->output_file, "        mov     %s [rsp], %s\n", CG_size_to_extension(cg->curr_size), CG_register_to_str(reg, cg->curr_size));
 							rstack_push(cg->stack, reg);
 						}
-						var_type_t t1 = TC_get_type_BE(cg, BE);
+						var_type_T *t1 = TC_get_type_BE(cg, BE);
 						cg->curr_size = var_type_size(t1);
 						cg->is_value_needed = 1;
 						int reg1 = CG_code(cg, BE);
